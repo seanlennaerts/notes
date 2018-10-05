@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:notes/pages/notes.dart';
+import 'package:notes/pages/lock.dart';
 
 import 'package:notes/app_state_container.dart';
 import 'package:notes/models/app_state.dart';
@@ -8,6 +9,10 @@ void main() => runApp(AppStateContainer(child: MyApp()));
 
 class MyApp extends StatelessWidget {
   AppState appState;
+
+  _handleAuthFlow() {
+    return Lock();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +26,7 @@ class MyApp extends StatelessWidget {
         brightness: appState.darkMode ? Brightness.dark : Brightness.light, 
         primarySwatch: Colors.blue,
       ),
-      home: Notes(),
+      home: _handleAuthFlow(),
     );
   }
 }

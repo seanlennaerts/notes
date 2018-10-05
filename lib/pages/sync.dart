@@ -38,8 +38,20 @@ class _SyncState extends State<Sync> {
     return true;
   }
 
+  buildActivityFlex() {
+    if (MediaQuery.of(context).orientation == Orientation.portrait) {
+      return Expanded(
+        child: Container(),
+        flex: 2,
+      );
+    } else {
+      return Container();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
@@ -59,7 +71,7 @@ class _SyncState extends State<Sync> {
                       children: [
                         Icon(
                           Icons.wifi,
-                          size: MediaQuery.of(context).size.width / 3,
+                          size: 125.0,
                           color: Colors.white,
                         ),
                         SizedBox(
@@ -84,11 +96,7 @@ class _SyncState extends State<Sync> {
                       ])),
               flex: 3,
             ),
-            Expanded(
-              child: Text(
-                  ''), // 'Please do not transfer sensitive data while connected to public Wi-Fi',
-              flex: 2,
-            ),
+            buildActivityFlex()
           ],
         ))
     );
