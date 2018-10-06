@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
   AppState appState;
 
   _handleAuthFlow() {
-    return Lock();
+    return Notes();
   }
 
   @override

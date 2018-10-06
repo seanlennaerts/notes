@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
-import 'dart:io';
+import 'dart:convert';
 
 import 'package:notes/app_state_container.dart';
 import 'package:notes/models/app_state.dart';
 
 import 'package:zefyr/zefyr.dart';
+
+import 'package:notes/models/note.dart';
 
 class Edit extends StatefulWidget {
   @override
@@ -20,6 +22,7 @@ class _EditState extends State<Edit> {
   bool _editing;
   NotusDocument _doc;
   AppState appState;
+
 
   @override
   void initState() {
@@ -40,7 +43,15 @@ class _EditState extends State<Edit> {
     super.dispose();
   }
 
-  _saveFile() {}
+  _saveFile() {
+    String plain = _doc.toPlainText();
+    appState.db.saveNote(Note(id: DateTime.now().millisecondsSinceEpoch, 
+    title: plain.split(' ')[0], 
+    doc: jsonEncode(_doc.toJson()),
+    plainText: plain,
+    timeStamp: DateTime.now()
+    ));
+  }
 
   Future<bool> _onWillPop() async {
     setState(() => _editing = false);
@@ -73,35 +84,33 @@ class _EditState extends State<Edit> {
             fontWeight: FontWeight.normal,
             color: themeTextColor,
           ),
-          padding: ZefyrThemeData.fallback(context).paragraphTheme.padding
-      ),
+          padding: ZefyrThemeData.fallback(context).paragraphTheme.padding),
       linkStyle: TextStyle(
         color: Theme.of(context).accentColor,
         decoration: TextDecoration.underline,
       ),
       headingTheme: HeadingTheme(
-        level1: StyleTheme(
-          textStyle: htf.level1.textStyle.merge(TextStyle(color: themeTextColor, inherit: true)),
-          padding: htf.level1.padding
-        ),
-        level2: StyleTheme(
-          textStyle: htf.level2.textStyle.merge(TextStyle(color: themeTextColor, inherit: true)),
-          padding: htf.level2.padding
-        ),
-        level3: StyleTheme(
-          textStyle: htf.level3.textStyle.merge(TextStyle(color: themeTextColor, inherit: true)),
-          padding: htf.level3.padding
-        )
-      ),
+          level1: StyleTheme(
+              textStyle: htf.level1.textStyle
+                  .merge(TextStyle(color: themeTextColor, inherit: true)),
+              padding: htf.level1.padding),
+          level2: StyleTheme(
+              textStyle: htf.level2.textStyle
+                  .merge(TextStyle(color: themeTextColor, inherit: true)),
+              padding: htf.level2.padding),
+          level3: StyleTheme(
+              textStyle: htf.level3.textStyle
+                  .merge(TextStyle(color: themeTextColor, inherit: true)),
+              padding: htf.level3.padding)),
       blockTheme: BlockTheme(
-        bulletList: btf.bulletList,
-        numberList: btf.numberList,
-        quote: StyleTheme(
-          textStyle: TextStyle(color: Theme.of(context).textTheme.caption.color),
-          padding: btf.quote.padding,
-        ),
-        code: btf.code
-      ),
+          bulletList: btf.bulletList,
+          numberList: btf.numberList,
+          quote: StyleTheme(
+            textStyle:
+                TextStyle(color: Theme.of(context).textTheme.caption.color),
+            padding: btf.quote.padding,
+          ),
+          code: btf.code),
       selectionColor: Theme.of(context).textSelectionColor,
     );
 
@@ -113,18 +122,31 @@ class _EditState extends State<Edit> {
         onWillPop: _onWillPop,
         child: Scaffold(
             appBar: AppBar(
-              brightness: appState.darkMode ? Brightness.dark : Brightness.light,
+              brightness:
+                  appState.darkMode ? Brightness.dark : Brightness.light,
               elevation: 0.0,
               backgroundColor: Theme.of(context).canvasColor,
               iconTheme: IconThemeData(color: Theme.of(context).accentColor),
               actions: [
-                FlatButton(
-                  child: Text('Done'),
-                  onPressed:
-                      _editing ? () => setState(() => _editing = false) : null,
-                  disabledTextColor: Theme.of(context).canvasColor,
-                  textColor: Theme.of(context).accentColor,
-                ),
+                _editing
+                    ? GestureDetector(
+                        child: Material(
+                          child: Container(
+                            // color: Colors.red,
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 20.0, vertical: 0.0),
+                            child: Center(
+                              child: Text(
+                                'Done',
+                                style: Theme.of(context).textTheme.button.apply(
+                                    color: Theme.of(context).accentColor),
+                              ),
+                            ),
+                          ),
+                        ),
+                        onTap: () => setState(() => _editing = false),
+                      )
+                    : Container(),
               ],
             ),
             body: GestureDetector(

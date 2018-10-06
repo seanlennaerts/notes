@@ -20,7 +20,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.2
   zefyr: ^0.1.2
-  shared_preferences: ^0.4.3
+  # shared_preferences: ^0.4.3
   sqflite: ^0.12.1
   flutter_slidable: ^0.4.7
 

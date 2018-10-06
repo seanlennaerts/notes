@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
 class SlidableTile extends StatelessWidget {
-  SlidableTile({this.title, this.subtitle, this.controller});
+  SlidableTile({this.title, this.subtitle, this.date, this.controller, this.onTap});
 
   final String title;
   final String subtitle;
+  final String date;
   final controller;
+  final onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +24,7 @@ class SlidableTile extends StatelessWidget {
           )
         ),
         isThreeLine: true,
-        trailing: Text('10/9/12'),
+        trailing: Text(this.date),
         subtitle: Text(subtitle),
         onTap: (){print(this.title);}
       ),
@@ -40,7 +42,7 @@ class SlidableTile extends StatelessWidget {
           caption: 'Delete',
           color: Colors.red,
           icon: Icons.delete,
-          onTap: (){print('delete');}
+          onTap: this.onTap
         )
       ],
       controller: this.controller,

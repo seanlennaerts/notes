@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 
 import 'package:notes/models/app_state.dart';
 
+import 'package:notes/database/database.dart';
+
 class AppStateContainer extends StatefulWidget {
   // Your apps state is managed by the container
   final AppState state;
@@ -46,7 +48,13 @@ class _AppStateContainerState extends State<AppStateContainer> {
     } else {
       state = AppState.loading();
       _initDarkModeState();
+      _initDatabase();
     }
+  }
+
+  _initDatabase() {
+    setState(() => state.db = DatabaseHelper());
+
   }
 
   _initDarkModeState() {

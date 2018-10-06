@@ -11,6 +11,8 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:notes/app_state_container.dart';
 import 'package:notes/models/app_state.dart';
 
+import 'package:notes/models/note.dart';
+
 class Notes extends StatefulWidget {
   @override
   _NotesState createState() => _NotesState();
@@ -26,12 +28,12 @@ class _NotesState extends State<Notes> {
   AppState appState;
 
   @override
-    void initState() {
-      super.initState();
-      search = false;
-      clear = false;
-      searchController.addListener(_searchInputListener);
-    }
+  void initState() {
+    super.initState();
+    search = false;
+    clear = false;
+    searchController.addListener(_searchInputListener);
+  }
 
   @override
   void dispose() {
@@ -45,15 +47,12 @@ class _NotesState extends State<Notes> {
 
   AppBar buildAppBar() {
     if (!search) {
-      return AppBar(
-        title: Text('Notes'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.search),
-            onPressed: () => setState(() => search = true), 
-          )
-        ]
-      );
+      return AppBar(title: Text('Notes'), actions: [
+        IconButton(
+          icon: Icon(Icons.search),
+          onPressed: () => setState(() => search = true),
+        )
+      ]);
     } else {
       return AppBar(
         backgroundColor: Theme.of(context).canvasColor,
@@ -61,10 +60,16 @@ class _NotesState extends State<Notes> {
         brightness: appState.darkMode ? Brightness.dark : Brightness.light,
         // titleSpacing: 0.0,
         leading: IconButton(
-          icon: Platform.isIOS ? Icon(Icons.arrow_back_ios) : Icon(Icons.arrow_back),
-          onPressed: () => setState(() => search = false),
+          icon: Platform.isIOS
+              ? Icon(Icons.arrow_back_ios)
+              : Icon(Icons.arrow_back),
+          onPressed: () {
+            setState(() => search = false);
+            searchController.clear();
+          },
         ),
-        title: Container( // need to wrap in opaque background to remove ripple inkwell effect of textfield
+        title: Container(
+          // need to wrap in opaque background to remove ripple inkwell effect of textfield
           color: Theme.of(context).canvasColor,
           child: TextField(
             controller: searchController,
@@ -73,19 +78,30 @@ class _NotesState extends State<Notes> {
               hintText: 'Search',
               border: InputBorder.none,
             ),
-
-            
+            textInputAction: TextInputAction.search,
           ),
         ),
         actions: [
-          IconButton(
-            icon: Icon(Icons.clear),
-            disabledColor: Theme.of(context).canvasColor,
-            onPressed: clear ? () => searchController.clear() : null,
-          )
+          clear
+              ? IconButton(
+                  icon: Icon(Icons.clear),
+                  onPressed: searchController.clear,
+                )
+              : Container()
         ],
       );
     }
+  }
+
+  List<SlidableTile> _buildNotes(AsyncSnapshot snapshot) {
+    return (snapshot.data as List<Note>).map((Note note) {
+      return SlidableTile(
+          title: note.title,
+          subtitle: note.plainText.length > 100 ? '${note.plainText.substring(0, 100)}...' : note.plainText,
+          date: '${note.timeStamp.day}/${note.timeStamp.month}/${note.timeStamp.year}',
+          controller: slidableController,
+          onTap: () => appState.db.deleteNote(note.id).then((v) => setState(() {})));
+    }).toList();
   }
 
   @override
@@ -131,24 +147,37 @@ class _NotesState extends State<Notes> {
               ));
             })
       ])),
-      body: ListView(
-              children: List.generate(20, (index) {
-        return SlidableTile(
-          title: 'Note $index',
-          subtitle:
-              'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
-          controller: slidableController,
-        );
-      })),
+      body: FutureBuilder(
+          future: search ? appState.db.searchNotes(searchController.text) : appState.db.getAllNotes(),
+          builder: (BuildContext context, AsyncSnapshot snapshot) {
+            if (snapshot.hasData) {
+              if (snapshot.data != null && snapshot.data.length > 0) {
+                return ListView(children: _buildNotes(snapshot));
+              } else {
+                return Center(child: Text('No notes', style: TextStyle(color: Colors.grey)));
+              }
+            } else {
+              return Center(child: CircularProgressIndicator());
+            }
+          }),
+      // ListView(
+      //     children: List.generate(20, (index) {
+      //   return SlidableTile(
+      //     title: 'Note $index',
+      //     subtitle:
+      //         'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
+      //     controller: slidableController,
+      //   );
+      // })),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.create),
         onPressed: () {
           Navigator.of(context).push(MaterialPageRoute(
-                builder: (BuildContext context) {
-                  return Edit();
-                },
-                fullscreenDialog: true,
-              ));
+            builder: (BuildContext context) {
+              return Edit();
+            },
+            fullscreenDialog: true,
+          ));
         },
       ),
     );
