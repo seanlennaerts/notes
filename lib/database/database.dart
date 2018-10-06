@@ -52,8 +52,6 @@ class DatabaseHelper {
   }
 
   Future<List<Note>> getAllNotes() async {
-    print('getAllNotes');
-
     var dbClient = await db;
     var result = await dbClient
         .rawQuery('SELECT * FROM $tableName ORDER BY timeStamp DESC');
@@ -115,7 +113,7 @@ class DatabaseHelper {
     var dbClient = await db;
     return await dbClient.rawUpdate(
         'UPDATE $tableName SET title = ?, doc = ?, plainText = ?, timeStamp = ? WHERE id = ?',
-        [note.title, note.doc, note.plainText, note.timeStamp, note.id]);
+        [note.title, note.doc, note.plainText, note.timeStamp.millisecondsSinceEpoch, note.id]);
   }
 
   Future close() async {

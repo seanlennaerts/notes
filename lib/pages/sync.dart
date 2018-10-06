@@ -27,10 +27,10 @@ class _SyncState extends State<Sync> {
       this.address = '${address.address}';
       this.server = server;
     });
-    // await for (HttpRequest request in server) {
-    //   request.response.write('Hello, Sean');
-    //   request.response.close();
-    // }
+    await for (HttpRequest request in server) {
+      request.response.write('TODO');
+      request.response.close();
+    }
   }
 
   Future<bool> _onWillPop() async {

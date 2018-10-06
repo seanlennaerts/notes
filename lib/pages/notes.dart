@@ -10,6 +10,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 
 import 'package:notes/app_state_container.dart';
 import 'package:notes/models/app_state.dart';
+import 'package:notes/utils/pretty_date.dart' as prettyDate;
 
 import 'package:notes/models/note.dart';
 
@@ -93,14 +94,28 @@ class _NotesState extends State<Notes> {
     }
   }
 
+  String buildDescription(int titleLength, String plainText) {
+    if (titleLength >= plainText.length) {
+      return 'No additional text';
+    }
+    return plainText.substring(titleLength + 1);
+  }
+
   List<SlidableTile> _buildNotes(AsyncSnapshot snapshot) {
     return (snapshot.data as List<Note>).map((Note note) {
       return SlidableTile(
           title: note.title,
-          subtitle: note.plainText.length > 100 ? '${note.plainText.substring(0, 100)}...' : note.plainText,
-          date: '${note.timeStamp.day}/${note.timeStamp.month}/${note.timeStamp.year}',
+          subtitle: buildDescription(note.title.length, note.plainText),
+          date: prettyDate.prettify(note.timeStamp),
           controller: slidableController,
-          onTap: () => appState.db.deleteNote(note.id).then((v) => setState(() {})));
+          onTap: () {
+            Navigator.of(context).push(MaterialPageRoute(
+            builder: (BuildContext context) {
+              return Edit(note: note); //TODO: should not hold whole note!, must call async get from database
+            },
+            fullscreenDialog: false));
+          },
+          onTapDelete: () => appState.db.deleteNote(note.id).then((v) => setState(() {})));
     }).toList();
   }
 
@@ -114,7 +129,7 @@ class _NotesState extends State<Notes> {
       drawer: Drawer(
           child: ListView(padding: EdgeInsets.zero, children: <Widget>[
         DrawerHeader(
-          child: Text(''),
+          child: Text(''), //TODO:
           decoration: BoxDecoration(
             color: Theme.of(context).primaryColor,
           ),
@@ -176,7 +191,7 @@ class _NotesState extends State<Notes> {
             builder: (BuildContext context) {
               return Edit();
             },
-            fullscreenDialog: true,
+            fullscreenDialog: false,
           ));
         },
       ),

@@ -11,29 +11,40 @@ import 'package:zefyr/zefyr.dart';
 import 'package:notes/models/note.dart';
 
 class Edit extends StatefulWidget {
+  Edit({this.note});
+
+  final Note note;
+
   @override
   _EditState createState() => _EditState();
 }
 
+enum Mode { New, View }
+
 class _EditState extends State<Edit> {
-  String title;
   ZefyrController _controller;
   FocusNode _focusNode;
   bool _editing;
   NotusDocument _doc;
   AppState appState;
-
+  Mode mode;
 
   @override
   void initState() {
     super.initState();
-    title = 'New Note';
-    // Create an empty document or load existing if you have one.
-    // Here we create an empty document:
-    _doc = NotusDocument();
+
+    if (widget.note == null) {
+      _doc = NotusDocument();
+      mode = Mode.New;
+      _editing = true;
+    } else {
+      _doc = NotusDocument.fromJson(jsonDecode(widget.note.doc));
+      mode = Mode.View;
+      _editing = false;
+    }
+
     _controller = ZefyrController(_doc);
     _focusNode = FocusNode();
-    _editing = true;
   }
 
   @override
@@ -45,12 +56,30 @@ class _EditState extends State<Edit> {
 
   _saveFile() {
     String plain = _doc.toPlainText();
-    appState.db.saveNote(Note(id: DateTime.now().millisecondsSinceEpoch, 
-    title: plain.split(' ')[0], 
-    doc: jsonEncode(_doc.toJson()),
-    plainText: plain,
-    timeStamp: DateTime.now()
-    ));
+    String plainStripped = plain.replaceAll('\n', ' ').trim();
+
+    if (plainStripped.length > 0) {
+      switch (mode) {
+        case Mode.New:
+          Note n = Note(
+              id: DateTime.now().millisecondsSinceEpoch,
+              title: plain.split('\n')[0].trim(),
+              doc: jsonEncode(_doc.toJson()),
+              plainText: plainStripped,
+              timeStamp: DateTime.now());
+          appState.db.saveNote(n);
+          break;
+        case Mode.View:
+          Note n = Note(
+              id: widget.note.id,
+              title: plain.split('\n')[0].trim(),
+              doc: jsonEncode(_doc.toJson()),
+              plainText: plainStripped,
+              timeStamp: DateTime.now());
+          appState.db.updateNote(n);
+          break;
+      }
+    }
   }
 
   Future<bool> _onWillPop() async {
@@ -144,7 +173,10 @@ class _EditState extends State<Edit> {
                             ),
                           ),
                         ),
-                        onTap: () => setState(() => _editing = false),
+                        onTap: () {
+                          setState(() => _editing = false);
+                          _saveFile();
+                        }
                       )
                     : Container(),
               ],
